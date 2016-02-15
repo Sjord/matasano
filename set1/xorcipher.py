@@ -29,6 +29,7 @@ freqs = {
     'x':  0.150,	
     'y':  1.974,	
     'z':  0.074,	
+    ' ':  8,
 }
 
 
@@ -45,4 +46,8 @@ def text_score(strvalue):
         score += freqs.get(letter.lower(), -100)
     return score
 
-print max([xor(crypted, i) for i in range(0, 255)], key=text_score)
+def crack_single_xor(crypted):
+    return max([xor(crypted, i) for i in range(0, 255)], key=text_score)
+
+if __name__ == "__main__":
+    print crack_single_xor(crypted)
