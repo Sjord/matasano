@@ -39,3 +39,18 @@ for i in range(255):
     if ciphertext[0:16] == target:
         print(i, chr(i))
         break
+
+message = b'a' * 192
+decoded = b''
+while True:
+    message = message[1:]
+    target = encrypt(message)[0:192]
+    for i in range(255):
+        ciphertext = encrypt(message + decoded + bytearray([i]))
+        if ciphertext[0:192] == target:
+            decoded += bytearray([i])
+            print(decoded)
+            break
+    else:
+        print("done")
+        break
