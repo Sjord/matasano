@@ -27,4 +27,34 @@ def oracle(data):
     data = prefix + data + something
     return encrypt(data)
 
-print(len(oracle(b'attacker controlled')))
+def blocks(data, blocksize=16):
+    for i in range(int(len(data) / blocksize)):
+        yield data[i*blocksize:(i+1)*blocksize]
+
+encrypted_as = oracle(b'a' * 1000)
+blocks = list(blocks(encrypted_as))
+a_block = max(blocks, key=blocks.count)
+
+for i in range(1, 100):
+    ciphertext = oracle(b'a' * i)
+    if a_block in ciphertext:
+        random_length = ciphertext.index(a_block) - i + 16
+        print(random_length)
+        break
+
+length = 192 + random_length
+message = b'a' * 192
+decoded = b''
+
+while True:
+    message = message[1:]
+    target = oracle(message)[0:length]
+    for i in range(255):
+        ciphertext = oracle(message + decoded + bytearray([i]))
+        if ciphertext[0:length] == target:
+            decoded += bytearray([i])
+            print(decoded)
+            break
+    else:
+        print("done")
+        break
