@@ -22,8 +22,9 @@ def random_prefix():
     return os.urandom(byte_count)
 
 
+prefix = random_prefix()
 def oracle(data):
-    data = random_prefix() + data + something
+    data = prefix + data + something
     return encrypt(data)
 
 print(len(oracle(b'attacker controlled')))
