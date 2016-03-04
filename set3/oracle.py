@@ -22,23 +22,28 @@ def pad(data):
 
 def validate_padding(data):
     pad_length = data[-1]
+    if pad_length == 0 or pad_length > 16:
+        return False
     for i in range(pad_length):
         if data[-i-1] != pad_length:
             return False
     return True
 
 def encrypt():
-    data = b64decode(random.choice(strings))
+    data = b64decode(strings[0])  # random.choice(strings))
     with open('key.txt', 'rb') as fp:
         key = fp.read()
     assert len(key) == 16
     iv = os.urandom(16)
+    assert len(iv) == 16
     ciphertext = AES.new(key, AES.MODE_CBC, IV=iv).encrypt(pad(data))
     return (iv, ciphertext)
 
 def valid_padding(iv, ciphertext):
     with open('key.txt', 'rb') as fp:
         key = fp.read()
+    assert len(key) == 16
+    assert len(iv) == 16
     plain = AES.new(key, AES.MODE_CBC, IV=iv).decrypt(ciphertext)
     return validate_padding(plain)
 
@@ -47,14 +52,10 @@ assert valid_padding(*encrypt())
 
 iv, ciphertext = encrypt()
 first_block = ciphertext[0:16]
-some_block = bytearray(b'0' * 16)
+second_block = ciphertext[16:32]
+some_block = bytearray(b'\0' * 16)
 for i in range(256):
     some_block[-1] = i
-    attempt = some_block + first_block
+    attempt = some_block + second_block
     if valid_padding(iv, bytes(attempt)):
-        some_block[-1] ^= 3
-        for j in range(256):
-            some_block[-2] = j
-            attempt = some_block + first_block
-            if valid_padding(iv, bytes(attempt)):
-                print(i ^ ciphertext[-1] ^ 1, j ^ ciphertext[-2] ^ 1)
+        print(i ^ first_block[-1] ^ 1)
