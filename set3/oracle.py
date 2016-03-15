@@ -30,7 +30,7 @@ def validate_padding(data):
     return True
 
 def encrypt():
-    data = b64decode(strings[0])  # random.choice(strings))
+    data = b64decode(random.choice(strings))
     with open('key.txt', 'rb') as fp:
         key = fp.read()
     assert len(key) == 16
@@ -70,7 +70,7 @@ assert valid_padding(*encrypt())
 
 
 iv, ciphertext = encrypt()
-first_block = ciphertext[0:16]
-second_block = ciphertext[16:32]
-print(decode(iv, first_block, second_block))
-
+blocks = list([ciphertext[i*16:(i+1)*16] for i in range(len(ciphertext) // 16)])
+previous_blocks = [iv] + blocks
+for prev_block, block in zip(previous_blocks, blocks):
+    print(decode(iv, prev_block, block))
