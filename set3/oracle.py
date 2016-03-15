@@ -47,15 +47,30 @@ def valid_padding(iv, ciphertext):
     plain = AES.new(key, AES.MODE_CBC, IV=iv).decrypt(ciphertext)
     return validate_padding(plain)
 
+
+def decode(iv, first_block, second_block):
+    plaintext = bytearray(b'?' * 16)
+    some_block = bytearray(b'\0' * 16)
+
+    for x in range(1, 17):
+        for j in range(1, x):
+            some_block[-j] ^= x ^ (x-1)
+
+        for i in range(256):
+            some_block[-x] = i
+            attempt = some_block + second_block
+            if valid_padding(iv, bytes(attempt)):
+                plaintext[-x] = i ^ first_block[-x] ^ x
+                break
+
+    return plaintext
+
+
 assert valid_padding(*encrypt())
 
 
 iv, ciphertext = encrypt()
 first_block = ciphertext[0:16]
 second_block = ciphertext[16:32]
-some_block = bytearray(b'\0' * 16)
-for i in range(256):
-    some_block[-1] = i
-    attempt = some_block + second_block
-    if valid_padding(iv, bytes(attempt)):
-        print(i ^ first_block[-1] ^ 1)
+print(decode(iv, first_block, second_block))
+
