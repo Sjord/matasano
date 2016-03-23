@@ -1,3 +1,5 @@
+import time
+
 (w, n, m, r) = (32, 624, 397, 31)
 a = 0x9908B0DF
 (u, d) = (11, 0xFFFFFFFF)
@@ -14,12 +16,14 @@ def w_trunc(number):
 
 x = []
 def init(seed):
-    x.append(seed)
+    global x, index
+    x = [seed]
     for i in range(1, n):
         x.append(w_trunc(f * (x[i - 1] ^ (x[i - 1] >> (w - 2))) + i))
+    index = n
 
 
-def next():
+def next_int():
     global index
 
     if index >= n:
@@ -49,6 +53,6 @@ def twist():
     index = 0
 
 
-init(12345)
-for i in range(1000):
-    print(next())
+if __name__ == "__main__":
+    init(int(time.time()))
+    print(next_int())
