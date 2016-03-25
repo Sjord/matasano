@@ -1,3 +1,4 @@
+from mt19937 import Random
 
 (w, n, m, r) = (32, 624, 397, 31)
 a = 0x9908B0DF
@@ -53,38 +54,14 @@ def state_to_rand(y):
     return y
 
 
+seed = 22131
+orig = Random(seed)
+clone = Random(0)
 
-def back_forth(orig):
-    rand = state_to_rand(orig)
-    back = rand_to_state(rand)
-    print(orig, rand, back, orig == back)
+for i in range(624):
+    output = orig.next_int()
+    state = rand_to_state(output)
+    clone.x[i] = state
 
-
-back_forth(1 << 20)
-back_forth(0x55555555)
-back_forth(0xDEADBEAF)
-back_forth(0x12345678)
-back_forth(1)
-back_forth(1 << 31)
-
-y = 0xDEADBEEF
-print("{0:64b} y".format(y))
-print("{0:64b} y << s".format(y << s))
-print("{0:64b} b".format(b))
-print("{0:64b} y << s & b".format((y << s) & b))
-print("{0:64b} y ^ y << s & b".format(y ^ ((y << s) & b)))
-print()
-y = y ^ ((y << s) & b)
-print("{0:64b} y".format(y))
-print("{0:64b} y << s".format(y << s))
-print("{0:64b} b".format(b))
-print("{0:64b} y & b".format(y & b))
-print("{0:64b} y << s & b".format((y << s) & b))
-print("{0:64b} y ^ y << s & b".format(y ^ ((y << s) & b)))
-print()
-
-print("{0:64b} y".format(y))
-y = y ^ ((y << s) & b)
-print("{0:64b} y".format(y))
-y = undo_left_shift(y, s, b)
-print("{0:64b} y".format(y))
+for i in range(100):
+    print orig.next_int(), clone.next_int()
