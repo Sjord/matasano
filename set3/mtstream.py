@@ -21,4 +21,7 @@ def random_prefix():
 
 
 cipher = encrypt(1234, random_prefix() + b'a' * 14)
-print(encrypt(1234, cipher))
+for i in range(0xffff):
+    if b'aaaaaaa' in encrypt(i, cipher):
+        print(i)
+        break
