@@ -1,5 +1,6 @@
 from sha1 import sha1, Sha1Hash
 from time import sleep, time
+from statistics import median
 
 blocksize = 64
 
@@ -28,9 +29,9 @@ def insecure_compare(ma, mb):
         return False
 
     for a, b in zip(ma, mb):
-        sleep(0.020)
         if a != b:
             return False
+        sleep(0.005)
     return True
 
 
@@ -47,6 +48,17 @@ def time_compare(message, mac):
     return time() - start
 
 
+def find_character(base_mac, offset):
+    durations = []
+    for attempt in '3acb194560278fde':
+        hmac_attempt[offset] = attempt
+        times = [time_compare(subject, ''.join(hmac_attempt)) for i in range(3)]
+        duration = median(times)
+        durations.append((attempt, duration))
+    attempt, duration = max(durations, key=lambda x: x[1])
+    return attempt
+
+
 if __name__ == "__main__":
     # assert hmac(b'', b'') == 'fbdb1d1b18aa6c08324b7d64b71fb76370690e1d'
     # assert hmac(b"key", b"The quick brown fox jumps over the lazy dog") == 'de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9'
@@ -57,14 +69,10 @@ if __name__ == "__main__":
     hmac_attempt = list('x' * 40)
 
     for offset in range(40):
-        base_duration = time_compare(subject, ''.join(hmac_attempt))
-        for attempt in '3acb194560278fde':
-            hmac_attempt[offset] = attempt
-            duration = time_compare(subject, ''.join(hmac_attempt))
-            if duration > base_duration + 0.010:
-                print(''.join(hmac_attempt))
-                break
-        else:
-            print("Failed")
-            break
-            
+        found = find_character(hmac_attempt, offset)
+        hmac_attempt[offset] = found
+        print(''.join(hmac_attempt))
+
+    assert validate_hmac(subject, ''.join(hmac_attempt))
+
+# correct HMAC: 53ca3c1a2fb93671acb193638953041bacba4234
