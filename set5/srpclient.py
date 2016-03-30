@@ -13,7 +13,7 @@ N = 0xffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b
 g = 2
 k = 3
 I = b'sjoerd@example.com'
-P = b'Hunter2'
+P = b''
 
 def convert_to_bytes(items):
     result = []
@@ -49,7 +49,7 @@ class Client:
 
     def connect(self):
         self.a = randrange(0, N)
-        A = pow(g, self.a, N)
+        A = 0
         self.A = A
         self._network.send(self, [0, I, A])
 
@@ -58,7 +58,7 @@ class Client:
             _, salt, B = msg
             u = sha256int(self.A, B)
             x = sha256int(salt + P)
-            S = pow(B - k * pow(g, x, N), self.a + u * x, N)
+            S = 0
             K = sha256(S)
             self._network.send(self, [2, hmac256(K, salt)])
         if msg[0] == 3:
