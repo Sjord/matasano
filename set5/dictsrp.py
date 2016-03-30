@@ -88,22 +88,46 @@ class Server:
 
 
 
-class Mitm(Client):
-    s = 0
+class Mitm:
+    """
+    If g=2, B=2:
+    A = 2 ** a
+    S = 2 ** (a + u * x) = A * 2 ** (u + x)
+    """
+
+    passwords = [
+        b'letmein',
+        b'password',
+        b'12345678',
+        b'Hunter2',
+        b'apple',
+        b'qwerty',
+    ]
 
     def intercept(self, sender, msg):
         if msg[0] == 0:
-            if len(msg) == 4:
-                n, p, g, A = msg
-                self.p = p
-                return (n, p, g, p)
-            if len(msg) == 2:
-                n, B = msg
-                return (n, self.p)
-        else:
-            _, iv, ciphertext = msg
-            print("MITM", self.decrypt(iv, ciphertext))
-            
+            _, _, self.A = msg
+
+        if msg[0] == 1:
+            n, salt, old_b = msg
+            return [n, b'', 2]
+
+        if msg[0] == 2:
+            _, mac = msg
+            print("MAC", mac)
+
+            u = sha256int(self.A, 2)
+            salt = b''
+            for pw in self.passwords:
+                x = sha256int(pw)
+                S = (self.A * pow(2, u * x, N)) % N
+                K = sha256(S)
+                if mac == hmac256(K, salt):
+                    print(pw)
+                    break
+            else:
+                print("Failed")
+
         return msg
 
 
@@ -125,7 +149,8 @@ class Network:
                 listener.receive(msg)
         
 
-network = Network()
+mitm = Mitm()
+network = Network(mitm=mitm)
 c = Client(network)
 s = Server(network)
 
