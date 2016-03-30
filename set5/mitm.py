@@ -67,24 +67,45 @@ class B(Client):
             self._network.send(self, [1, iv, ciphertext])
 
 
+class Mitm(Client):
+    s = 0
+
+    def intercept(self, sender, msg):
+        if msg[0] == 0:
+            if len(msg) == 4:
+                n, p, g, A = msg
+                self.p = p
+                return (n, p, g, p)
+            if len(msg) == 2:
+                n, B = msg
+                return (n, self.p)
+        else:
+            _, iv, ciphertext = msg
+            print("MITM", self.decrypt(iv, ciphertext))
+            
+        return msg
 
 
 
 class Network:
-    def __init__(self):
+    def __init__(self, mitm=None):
         self._listeners = []
+        self._mitm = mitm
 
     def subscribe(self, listener):
         self._listeners.append(listener)
         return self
 
     def send(self, sender, msg):
+        if self._mitm:
+            msg = self._mitm.intercept(sender, msg)
         for listener in self._listeners:
             if listener != sender:
                 listener.receive(msg)
         
 
-network = Network()
+mitm = Mitm()
+network = Network(mitm=mitm)
 a = A(network)
 b = B(network)
 
