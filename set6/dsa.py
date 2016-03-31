@@ -32,6 +32,9 @@ def sha1num(msg):
 
 def sign(msg, x, k=None):
     hash = sha1num(msg)
+    return sign_hash(hash, x, k, q)
+
+def sign_hash(hash, x, k, q):
     s = 0
     while s == 0:
         r = 0
@@ -61,24 +64,24 @@ def private_key_from_k(k, msg, signature):
     return x % q
 
 
+if __name__ == "__main__":
+    msg = b'hi mom'
 
-msg = b'hi mom'
+    k = randrange(1, q)
+    signature = sign(msg, x, k)
+    print(verify(msg, signature))
 
-k = randrange(1, q)
-signature = sign(msg, x, k)
-print(verify(msg, signature))
+    msg = b'For those that envy a MC it can be hazardous to your health\nSo be friendly, a matter of life and death, just like a etch-a-sketch\n'
+    assert sha1num(msg) == 0xd2d0714f014a9784047eaeccf956520045c45265
+    r = 548099063082341131477253921760299949438196259240
+    s = 857042759984254168557880549501802188789837994940
+    signature = (r, s)
 
-msg = b'For those that envy a MC it can be hazardous to your health\nSo be friendly, a matter of life and death, just like a etch-a-sketch\n'
-assert sha1num(msg) == 0xd2d0714f014a9784047eaeccf956520045c45265
-r = 548099063082341131477253921760299949438196259240
-s = 857042759984254168557880549501802188789837994940
-signature = (r, s)
+    for k in range(1, 2 ** 16):
+        x = private_key_from_k(k, msg, signature)
+        signature_for_k = sign(msg, x, k)
+        if signature_for_k == signature:
+            print(x)
+            break
 
-for k in range(1, 2 ** 16):
-    x = private_key_from_k(k, msg, signature)
-    signature_for_k = sign(msg, x, k)
-    if signature_for_k == signature:
-        print(x)
-        break
-
-assert hashlib.sha1(hex(x)[2:].encode('ascii')).hexdigest() == '0954edd5e0afe5542a4adf012611a91912a3ec16'
+    assert hashlib.sha1(hex(x)[2:].encode('ascii')).hexdigest() == '0954edd5e0afe5542a4adf012611a91912a3ec16'
