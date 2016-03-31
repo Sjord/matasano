@@ -9,6 +9,16 @@ public_key = (e, n)
 d = 96902053191950308557526175447035989710312648278775914959607609007825091900568637633014852503729579892379749165822551832055329652450945574066281107336876457088543674768479207822112452642608115230908553049418755692245646544317554349821456948948599173569725547836213690795199860641980627483611670389126448115371
 private_key = (d, n)
 
+
+def iroot(k, n):
+    u, s = n, n+1
+    while u < s:
+        s = u
+        t = (k-1) * s + n // pow(s, k-1)
+        u = t // k
+    return s
+
+
 def decrypt(d, n, data):
     number = int.from_bytes(data, 'big')
     decrypted = pow(number, d, n)
@@ -37,3 +47,9 @@ def verify(e, n, signature, msg):
 signature = sign(*private_key, msg)
 ok = verify(*public_key, signature, msg)
 print(ok)
+
+hash = hashlib.sha256(msg).digest()
+forged = b'\0\1\xff\0' + hash + b'\x80' * (128 - 36)
+assert len(forged) == 128
+forged_root = iroot(3, int.from_bytes(forged, 'big'))
+print(verify(e, n, forged_root, msg))
