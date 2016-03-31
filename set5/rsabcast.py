@@ -1,5 +1,6 @@
 from functools import reduce
 from math import sqrt
+from decimal import Decimal
 
 pubkeys = [
     (3, 154958627823382507069208390231268802992828047118059847416043427510524381602930963777952242332542932981658186308917686577059626192462940290368472996044654499366893799656750126073946434791512528648971327916947008835144605551515351251090103574830002174544963960641442315064252593249886452297017340445897735515971),
@@ -9,6 +10,7 @@ pubkeys = [
 
 def encrypt(e, n, data):
     number = int.from_bytes(data, 'big')
+    assert number < n
     encrypted = pow(number, e, n)
     return encrypted.to_bytes(512, 'big')
 
@@ -21,6 +23,13 @@ def chinese_remainder(n, a):
         sum += a_i * mul_inv(p, n_i) * p
     return sum % prod
  
+def iroot(k, n):
+    u, s = n, n+1
+    while u < s:
+        s = u
+        t = (k-1) * s + n // pow(s, k-1)
+        u = t // k
+    return s
  
 def mul_inv(a, b):
     b0 = b
@@ -35,10 +44,14 @@ def mul_inv(a, b):
 
 ciphertexts = []
 for e, n in pubkeys:
-    ciphertexts.append(encrypt(e, n, b'secret message'))
+    ciphertexts.append(encrypt(e, n, b'secret message that is long enough for the modulo'))
+
+assert ciphertexts[0] != ciphertexts[1]
+assert ciphertexts[0] != ciphertexts[2]
+assert ciphertexts[1] != ciphertexts[2]
 
 n = [key[1] for key in pubkeys]
 a = [int.from_bytes(c, 'big') for c in ciphertexts]
 number = chinese_remainder(n, a)
-plain = int(number ** 1/3)
+plain = iroot(3, number)
 print(plain.to_bytes(512, 'big').strip(b'\0'))
