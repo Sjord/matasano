@@ -30,13 +30,14 @@ def sha1num(msg):
     return int.from_bytes(hashlib.sha1(msg).digest(), 'big')
 
 
-def sign(msg):
+def sign(msg, k=None):
     hash = sha1num(msg)
     s = 0
     while s == 0:
         r = 0
         while r == 0:
-            k = randrange(1, q)
+            if k is None:
+                k = randrange(1, q)
             r = pow(g, k, p) % q
         s = (modinv(k, q) * (hash + x * r)) % q
     return (r, s)
@@ -53,6 +54,17 @@ def verify(msg, signature):
     return v == r
 
 
+def private_key_from_k(k, msg, signature):
+    r, s = signature
+    hash = sha1num(msg)
+    x = ((s * k) - hash) * modinv(r, q)
+    return x % q
+
+
+
 msg = b'hi mom'
-signature = sign(msg)
+k = randrange(1, q)
+signature = sign(msg, k)
 print(verify(msg, signature))
+print(private_key_from_k(k, msg, signature))
+print(x)
