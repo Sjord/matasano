@@ -55,3 +55,9 @@ zero_dsa = DSA(default_p, default_q, 0)
 signature = zero_dsa.sign(b'hello world', private)
 assert zero_dsa.verify(b'hello world', signature, public)
 assert zero_dsa.verify(b'other message', signature, public)
+
+pp1_dsa = DSA(default_p, default_q, default_p + 1)
+r = (public % default_p) % default_q
+s = r
+assert pp1_dsa.verify(b'Hello, world', (r, s), public)
+assert pp1_dsa.verify(b'Goodbye, world', (r, s), public)
