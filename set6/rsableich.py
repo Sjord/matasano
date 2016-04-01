@@ -61,9 +61,15 @@ def step3(M, s):
     low_r = ceil((a * s - 3 * B + 1) / n)
     high_r = floor((b * s - 2 * B) / n)
 
-    for r in range(low_r, 1 + high_r):
-        a, b = (max(a, ceil((2 * B + r * n) / s)), min(b, floor((3 * B - 1 + r * n) / s)))
+    assert low_r == high_r
 
+    r = low_r
+    assert r >= (a * s - 3 * B + 1) / n
+    assert r <= (b * s - 2 * B) / n
+
+    a, b = (max(a, ceil((2 * B + r * n) / s)), min(b, floor((3 * B - 1 + r * n) / s)))
+
+    assert b >= a
     return (a, b)
 
 
@@ -86,15 +92,20 @@ assert is_conforming(cipher_num)
 B = 1 << (bsize * 8 - 16)
 M = (2*B, 3*B-1)
 
+assert B == pow(2, 8 * (bsize - 2))
+
 # 2a
 s = step2a()
 assert s
+assert is_conforming(multiply(s, cipher_num))
 
 M = step3(M, s)
 
 while M[0] < M[1]:
     # 2c
     r, s = step2c(M, s)
+
+    assert is_conforming(multiply(s, cipher_num))
 
     assert s >= (2 * B + r * n) / M[1]
     assert s < (3 * B + r * n) / M[0]
