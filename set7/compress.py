@@ -8,6 +8,15 @@ def xor(a, b):
         result.append(la ^ lb)
     return bytes(result)
 
+def cbc(plaintext):
+    pad = 16 - len(plaintext) % 16
+    plaintext += bytes([pad] * pad)
+
+    iv = os.urandom(16)
+    key = os.urandom(16)
+    aes = AES.new(key, AES.MODE_CBC, IV=iv)
+    return aes.encrypt(plaintext)
+
 def request(P):
     request = b"""POST / HTTP/1.1
     Host: hapless.com
@@ -16,8 +25,8 @@ def request(P):
 
     %s""" % (len(P), P)
     compressed = zlib.compress(request)
-    otp = os.urandom(len(compressed))
-    encrypted = xor(compressed, otp)
+    encrypted = cbc(compressed)
+    assert len(encrypted) % 16 == 0
     return len(encrypted)
 
 
