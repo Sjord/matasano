@@ -47,14 +47,17 @@ for hash, nodes in to_index.items():
 best_root = (0, [], 0, [])
 for roots in root_attempts:
     leaves = roots
-    all_nodes = {}
+    all_nodes = {node[0]: node for node in roots}
 
     for i in range(10):
         new_leaves = []
         for leaf in leaves:
             new_leaves.extend(to_index[leaf[0]])
-            all_nodes[leaf[0]] = leaf
         leaves = new_leaves
+
+        for node in leaves:
+            all_nodes[node[0]] = node
+
         if len(leaves) > best_root[0]:
             best_root = (len(leaves), roots, i + 2, leaves, all_nodes)
 
