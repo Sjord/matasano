@@ -20,8 +20,8 @@ def check_weak_message(message):
     a, b, c, d = m.intermediates
 
     assert get_bit(a[1], 7) == get_bit(b[0], 7)
-    return
     assert get_bit(d[1], 7) == 0
+    return
     assert get_bit(d[1], 8) == get_bit(a[1], 8)
     assert get_bit(d[1], 11) == get_bit(a[1], 11)
     assert get_bit(c[1], 7) == 1
@@ -37,7 +37,7 @@ def xor_bit(a, b, bitnum):
     return (get_bit(a, bitnum) ^ get_bit(b, bitnum)) << (bitnum - 1)
 
 def message_numbers(message):
-    return list(struct.unpack("<16I", message))
+    return list(struct.unpack("<16i", message))
 
 def numbers_to_message(mnumbers):
     assert len(mnumbers) == 16
@@ -58,6 +58,9 @@ def make_weak_message(message):
 
     assert a[1] == rol(a[0] + F(b[0], c[0], d[0]) + m[0], 3)
     assert get_bit(a[1], 7) == get_bit(b[0], 7)
+
+    # d17 = 0
+    d[1] ^= get_bit(d[1], 7) << 6
     
     return numbers_to_message(m)
 
@@ -65,8 +68,6 @@ def to_bytes(n):
     n %= 0xffffffff
     return n.to_bytes(4, 'big')
 
-def ror(v, bits):
-    return ((v >> bits) | (v << 32-bits)) & 0xffffffff
 
 def rol(v, bits):
     v = v & 0xffffffff
